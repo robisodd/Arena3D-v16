@@ -1,0 +1,16 @@
+Each car color palette is customizable per player
+That way you don't need the player name hovering over the car, the unique paint job should identify
+Perhaps allow stickers or addons that can be added to the image
+
+
+Show sample car image during selection process
+
+
+Maybe set height is only 24 off the ground, but you can jump!  Using jump pads!
+Jump over other players... maybe land on them!
+
+Should have a CONSOLE LAYER chat window
+Should also use a CONSOLE LAYER to log errors and messages
+
+A default image should show if a resource can't load into memory
+Make HUD togglable for fullscreen or not
