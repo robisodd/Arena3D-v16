@@ -1,5 +1,24 @@
 //=======================================================================================================
-// How the ShadowTable works:
+// v16 - Cars: Ideas and Notes
+//=======================================================================================================
+// Make HUD togglable for fullscreen or not
+
+//=======================================================================================================
+// Glossery of Definitions:
+//=======================================================================================================
+//  Object = Anything that renders as a sprite.
+// Technically, everything in the object[] array.
+// Could be an enemy, an item, a bullet or whatever.
+//  Sprite = object as displayed on screen
+// Texture: An image as a Pebble resource.  Usually PNG.  Comes in two types:
+// Sprite Texture: The image (Pebble Resource) which is scaled, stretched and displayed as the sprite for an object.
+//                 Has transparency.  No size or color depth requirements anymore.
+//                 Enemies/Players = 48x32, Items = 16x16
+// Surface Texture: 64x64px image which is stretched and displayed as a wall or floor.
+
+
+//=======================================================================================================
+// How the ShadowTable works to render opacity and transparency:
 //=======================================================================================================
 // Table is a 4x64 array (was shadowtable[4][64]) for all 64 colors, and all 4 opacities.
 // It returns what a specified color would be if a specific opacity were applied.
@@ -8,6 +27,7 @@
 // shading it to 0b10rrggbb (66% of full strength) takes each r, g and b and subtracts 1 (unless it's 0, then it stays 0)
 // shading it to 0b01rrggbb (33% of full strength) takes 66%'s and subtracts 1 from each r g b again.
 // shading it to 0b00rrggbb ( 0% of full strength) is easy, it's just 0 (well, an opaque 0b11000000=192, so [0 to 64] are all 192)
+
 
 //=======================================================================================================
 // How Combine Colors works to make Transparancy
@@ -37,6 +57,7 @@
 //                   I decided to return 0b11RRGGBB cause it's useful to return a color under a shadow.
 //                   So now you gotta either &63 both of 'em then add 0b11000000, or just &63 one of 'em.
 
+
 //=======================================================================================================
 //  Footnotes
 //=======================================================================================================
@@ -51,6 +72,7 @@
 // total_column_height = box.size.h / (dist>>16) (Total height of 32pixel wall half. This isn't clipped to screen, so could be thousands of pixels tall)
 // y IS clipped to screen and goes from 3D view's middle to 3D view's top/bottom edge
 // which pixel in the texture hit = i/total_colum_height = y / (box.size.h / (dist>>16)) = (y * dist / box.size.h) >> 16
+
 
 //=======================================================================================================
 //

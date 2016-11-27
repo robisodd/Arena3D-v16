@@ -347,8 +347,9 @@ static void window_unload(Window *window) {
 
 static void init(void) {
   // Step 1: Detect Emulator
+  // Disabling this form of emulator detection because some peoples watches in the wild show up as "Unknown"
   emulator = (watch_info_get_model()==WATCH_INFO_MODEL_UNKNOWN) ? true : false;
-  if(app_logging) APP_LOG(APP_LOG_LEVEL_DEBUG, "Emulator Detection: %s", emulator ? "Emulation Detected" : "Real Watch Detected");
+  LOG("Emulator Detection: %s", emulator ? "Emulation Detected" : "Real Watch Detected");
   if(emulator) light_enable(true);
 
   // Step 2: Init Communication with PebbleKit JS

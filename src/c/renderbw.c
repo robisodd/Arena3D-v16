@@ -24,7 +24,7 @@ void fill_window(GContext *ctx, uint8_t *data) {
   for(uint16_t y=0, yaddr=0; y<168; y++, yaddr+=20)
     for(uint16_t x=0; x<19; x++)
 //       ((uint8_t*)(((GBitmap*)ctx)->addr))[yaddr+x] = data[y%8];
-    ((uint8_t*)*(uint32_t*)ctx)[yaddr+x] = data[y%8];
+    ((uint8_t*)*(size_t*)ctx)[yaddr+x] = data[y%8];
 }
 
 void draw_textbox(GContext *ctx, GRect textframe, char *text) {
@@ -41,7 +41,7 @@ void draw_map(GContext *ctx, GRect box, int32_t zoom) {
   // note: Currently doesn't handle drawing beyond screen boundaries
   // zoom = pixel size of each square
 //   uint32_t *ctx32 = ((uint32_t*)(((GBitmap*)ctx)->addr));  // framebuffer pointer (screen memory)
-  uint32_t *ctx32 = (uint32_t*)*(uint32_t*)ctx;  // framebuffer pointer (screen memory)
+  uint32_t *ctx32 = (uint32_t*)*(size_t*)ctx;  // framebuffer pointer (screen memory)
   
   uint32_t xbit;
   int32_t x, y, yaddr, xaddr, xonmap, yonmap, yonmapinit;
@@ -98,7 +98,7 @@ void draw_3D(GContext *ctx, GRect box) { //, int32_t zoom) {
   bottom_half = (box.size.h&1) ? 0 : 5; // whether bottom-half column starts at the same center pixel or one below (due to odd/even box.size.h)
 
 //   uint32_t *ctx32 = ((uint32_t*)(((GBitmap*)ctx)->addr));  // framebuffer pointer (screen memory)
-  uint32_t *ctx32 = (uint32_t*)*(uint32_t*)ctx;  // framebuffer pointer (screen memory)
+  uint32_t *ctx32 = (uint32_t*)*(size_t*)ctx;  // framebuffer pointer (screen memory)
   
   // Draw Box around view (not needed if fullscreen)
   //TODO: Draw straight to framebuffer

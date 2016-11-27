@@ -1,10 +1,36 @@
-/*jshint esversion: 6 */
-(function () {
+/*jshint esversion: 6 */ // <-- stops CloudPebble from highlighting supported things like "const"
+//(function () {
   //'use strict';
   
-  //----------------------------------------------------------------------------------------------------------//
-  // Game
-  //----------------------------------------------------------------------------------------------------------//
+//----------------------------------------------------------------------------------------------------------//
+// Includes and Globals
+//----------------------------------------------------------------------------------------------------------//
+  Pebble.connected = false;
+
+  var watch_info = require('watch_info');  // make sure to have this before your Pebble READY event listener so watch_info is filled out when its called.
+  
+  watch_info.onDetect(function() {
+    console.log('watch_info = ' + JSON.stringify(watch_info));
+    if(watch_info.emulator)
+      console.log("Emulator Detected: " + watch_info.model + " (" + watch_info.platform + ")");
+    else
+      console.log("Detected Pebble: " + watch_info.model + " (" + watch_info.platform + ")");
+    
+    
+    if(watch_info.emulator) {
+      console.log("Disabling Online Connection During Development");
+    } else {
+      init_entities();
+      create_username();
+      connect_to_server();
+    }
+  });
+
+
+
+//----------------------------------------------------------------------------------------------------------//
+// Game
+//----------------------------------------------------------------------------------------------------------//
   var entities = new Array(256);
   var username = "";
   var id = 0;  // Get ID from server, if 0, can't do anything.
@@ -17,9 +43,9 @@
 
 
   
-  //----------------------------------------------------------------------------------------------------------//
-  // WebSocket -- Phone to Server Communication
-  //----------------------------------------------------------------------------------------------------------//
+//----------------------------------------------------------------------------------------------------------//
+// WebSocket -- Phone to Server Communication
+//----------------------------------------------------------------------------------------------------------//
   var socket = null;
   //var serverURL = "ws://192.168.33.103:8080";                 // local, without encryption
   var serverURL = 'wss://arena3d-robisodd.rhcloud.com:8443/';   // with encryption
@@ -285,11 +311,9 @@
 
 
 
-
-  //----------------------------------------------------------------------------------------------------------//
-  // PebbleKit JS -- Pebble to Phone Communcation
-  //----------------------------------------------------------------------------------------------------------//
-  Pebble.connected = false;
+//----------------------------------------------------------------------------------------------------------//
+// PebbleKit JS -- Pebble to Phone Communcation
+//----------------------------------------------------------------------------------------------------------//
   
   const COMMAND_OPEN_CONNECTION = 0;
   const COMMAND_CLOSE_CONNECTION = 1;
@@ -338,25 +362,33 @@
   function messageFailureHandler(data, error) {
     console.log("Message send failed: " + error);
   }
+  
 
+  // -------------------------------------------------------------------------------- //
+  
 
-
-  Pebble.addEventListener("ready", function(e) {
-    Pebble.connected = true;
-    console.log("JS is ready!");
+  function create_username() {
     username = Pebble.getAccountToken();
     username = "Pebble " + username.slice(username.length - 5);
     console.log("Username = " + username);
+  }
+
+  
+  // -------------------------------------------------------------------------------- //
+  
+  
+  Pebble.addEventListener("ready", function(e) {
+    Pebble.connected = true;
+    console.log("JS is ready!");    
     send_system_message_to_pebble("PebbleKit JS Ready");
     
     send_status_to_pebble(STATUS_PEBBLEKIT_JS_READY);
-
-    init_entities();
-    connect_to_server();
+    
+    // Note: Another READY listener is above with "watch_info.onDetect"
   });
 
 
-  
+  // -------------------------------------------------------------------------------- //
   
   
   Pebble.addEventListener("appmessage", function(e) {
@@ -397,7 +429,7 @@
 
 
 
-}());
+//}());
 
 
 

@@ -5,7 +5,9 @@
 #define IF_BW(x)        COLOR_FALLBACK((void)0, x)
 #define IF_COLORBW(x,y) COLOR_FALLBACK(x, y)
 #define IF_BWCOLOR(x,y) COLOR_FALLBACK(y, x)
-  
+
+#define null NULL  // CloudPebble highlights lowercase version which looks nicer, adding this macro to make it useable
+
 //#define MAP_SIZE 21             // Map is MAP_SIZE * MAP_SIZE squares big
 #define MAP_SIZE 10             // Map is MAP_SIZE * MAP_SIZE squares big
 #define MAX_TEXTURES 15        // Most number of textures there's likely to be.  Feel free to increase liberally, but no more than 254.
@@ -14,7 +16,7 @@
 //options
 #define IDCLIP false           // Walk thru walls
 //#define view_border false       // Draw border around 3D viewing window
-#define app_logging true      // Whether program should log errors and info to the phone or not
+//#define app_logging true      // Whether program should log errors and info to the phone or not
   
 #define Format1Bit 0  // Note: On Color, all 1bit images need to be converted to GBitmapFormat1BitPalette
 #define Format2Bit 1
@@ -95,14 +97,42 @@ typedef union TextureStruct {
 //4 = invalid                                                          <<4=*16      1-1=&0                                          4
 } TextureStruct;
 
-//void LOG(char *str);
-#define logging true  // Enable/Disable logging for debugging
+
+#define logging true                   // Enable/Disable logging for debugging
+#define logwithtime true               // Log with timestamp or just regular logging
 //Note: printf uses APP_LOG_LEVEL_DEBUG
 #if logging
-  #define LOG(...) (printf(__VA_ARGS__))
+  #if logwithtime
+    #define    LOG_TIME(log_level, format, ...) app_log( \
+      log_level, __FILE__, __LINE__, "[%d:%02d:%02d.%03d] " format, \
+      (int)(time(NULL)%SECONDS_PER_DAY)/SECONDS_PER_HOUR, \
+      (int)(time(NULL)%SECONDS_PER_HOUR)/SECONDS_PER_MINUTE, \
+      (int)(time(NULL)%SECONDS_PER_MINUTE), time_ms(NULL, NULL), ## __VA_ARGS__ \
+    )
+  #else
+    #define    LOG_TIME(log_level, format, ...)
+  #endif
+  #define      LOG_MS(...) app_log(APP_LOG_LEVEL_INFO, "ms", (int)((time(NULL)&255)*1000 + time_ms(NULL, NULL))&65535, __VA_ARGS__);
+  #define         LOG(...) LOG_TIME(APP_LOG_LEVEL_DEBUG,         __VA_ARGS__)
+  #define   LOG_DEBUG(...) LOG_TIME(APP_LOG_LEVEL_DEBUG,         __VA_ARGS__)
+  #define LOG_WARNING(...) LOG_TIME(APP_LOG_LEVEL_WARNING,       __VA_ARGS__)
+  #define   LOG_ERROR(...) LOG_TIME(APP_LOG_LEVEL_ERROR,         __VA_ARGS__)
+  #define    LOG_INFO(...) LOG_TIME(APP_LOG_LEVEL_INFO,          __VA_ARGS__)
+  #define LOG_VERBOSE(...) LOG_TIME(APP_LOG_LEVEL_DEBUG_VERBOSE, __VA_ARGS__)
 #else
-  #define LOG(...)
+  #define         LOG(...)
+  #define   LOG_DEBUG(...)
+  #define LOG_WARNING(...)
+  #define   LOG_ERROR(...)
+  #define    LOG_INFO(...)
+  #define LOG_VERBOSE(...)
+  #define      LOG_MS(...)
+  #define LOG_TIMESTAMP(...) 
 #endif
+
+
+
+
 
 int32_t sqrt32(int32_t a);
 int32_t sqrt_int(int32_t a, int8_t depth);

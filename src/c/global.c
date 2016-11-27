@@ -15,14 +15,6 @@ PlayerStruct player;
 ObjectStruct object[MAX_OBJECTS];
 RayStruct ray;
 
-// void LOG(char *str) {
-//   if(app_logging) {
-//     time_t sec; uint16_t ms;
-//     time_ms(&sec, &ms);
-//     APP_LOG(APP_LOG_LEVEL_DEBUG, "%ld: %s", (long)((uint16_t)(1000*sec) + (int16_t)ms), str);
-//   }
-// }
-
 // square root
 #define root_depth 10          // How many iterations square root function performs
 int32_t sqrt32(int32_t a) {int32_t b=a; for(int8_t i=0; i<root_depth; i++) b=(b+(a/b))/2; return b;} // Square Root
@@ -42,16 +34,23 @@ int32_t sign32(int32_t x){return (x > 0) - (x < 0);}
 uint8_t log16 (uint16_t x){uint8_t l=0; while (x>>=1) l++; return l;}
   
 
+// void LOG_TIMESTAMP(char *str) {
+//     time_t sec; uint16_t ms;
+//     time_ms(&sec, &ms);
+// //     APP_LOG(APP_LOG_LEVEL_DEBUG, "%ld: %s", (long)((uint16_t)(1000*sec) + (int16_t)ms), str);
+// // app_log(APP_LOG_LEVEL_INFO,          str, (int)((uint16_t)(1000*sec) + (int16_t)ms), "%s", str);
+//   time_ms(null, null);
+//   app_log(APP_LOG_LEVEL_INFO,          str, (int)((uint16_t)(1000*sec) + (int16_t)ms), "%s", str);
+// }
+
 // get_gbitmapformat_text() lovingly stolen from: https://github.com/rebootsramblings/GBitmap-Colour-Palette-Manipulator/blob/master/src/gbitmap_color_palette_manipulator.c
 char* get_gbitmapformat_text(GBitmapFormat format) {
 	switch (format) {
 		case GBitmapFormat1Bit:        return "GBitmapFormat1Bit";        // 2 colors
-    #ifdef PBL_COLOR
 		case GBitmapFormat8Bit:        return "GBitmapFormat8Bit";        // 64 colors
 		case GBitmapFormat1BitPalette: return "GBitmapFormat1BitPalette"; //  2 colors
 		case GBitmapFormat2BitPalette: return "GBitmapFormat2BitPalette"; //  4 colors
 		case GBitmapFormat4BitPalette: return "GBitmapFormat4BitPalette"; // 16 colors
-    #endif
 		default:                       return "UNKNOWN FORMAT";           //  ? colors
 	}
 }
@@ -81,7 +80,7 @@ char* get_gbitmapformat_text(GBitmapFormat format) {
         }
       }
     } else {
-      if(app_logging) APP_LOG(APP_LOG_LEVEL_DEBUG, "Failed to merge images: Sizes not the same. Black is (%d x %d), White is (%d x %d)", gbitmap_get_bounds(black).size.w, gbitmap_get_bounds(black).size.h, gbitmap_get_bounds(white).size.w, gbitmap_get_bounds(white).size.h);
+      LOG_ERROR("Failed to merge images: Sizes not the same. Black is (%d x %d), White is (%d x %d)", gbitmap_get_bounds(black).size.w, gbitmap_get_bounds(black).size.h, gbitmap_get_bounds(white).size.w, gbitmap_get_bounds(white).size.h);
     }
     gbitmap_destroy(black);
     gbitmap_destroy(white);
@@ -91,6 +90,10 @@ char* get_gbitmapformat_text(GBitmapFormat format) {
   
 uint8_t blank_palette = IF_BWCOLOR(0b00000000, 0b11000011);
 uint8_t blank_texture[] = {0,0};
+
+
+
+
 
 
 void LoadMapTextures() {
@@ -129,25 +132,25 @@ void LoadMapTextures() {
   };
   
   LOG("Loading Textures");
-  for(uint8_t i=0, NumberOfTextures=sizeof(Texture_Resources)/sizeof(Texture_Resources[0]); i<NumberOfTextures; ++i) {
+  for(uint8_t i=0, NumberOfTextures=ARRAY_LENGTH(Texture_Resources); i<NumberOfTextures; ++i) {
     size_t totalsize=0;
-    LOG("Resource %d size: %d bytes", i, resource_size(resource_get_handle(Texture_Resources[i])));
-    //if(app_logging) APP_LOG(APP_LOG_LEVEL_DEBUG, "Loading: %d", i);
-    LOG("Heap Before Loading Texture: %d bytes", heap_bytes_used()); totalsize=heap_bytes_used();
+    LOG_DEBUG("Resource %d size: %d bytes", i, (int)resource_size(resource_get_handle(Texture_Resources[i])));
+    //LOG_VERBOSE("Loading: %d", i);
+    LOG_DEBUG("Heap Before Loading Texture: %d bytes", (int)heap_bytes_used()); totalsize=heap_bytes_used();
     texture[i].bmp = gbitmap_create_with_resource(Texture_Resources[i]);
-    LOG("Heap After  Loading Texture: %d bytes", heap_bytes_used());   totalsize=heap_bytes_used() - totalsize;
-    LOG("Uncompressed Size: %d bytes", totalsize);
+    LOG_DEBUG("Heap After  Loading Texture: %d bytes", (int)heap_bytes_used());   totalsize=heap_bytes_used() - totalsize;
+    LOG_DEBUG("Uncompressed Size: %d bytes", (int)totalsize);
 
     if(texture[i].bmp==NULL) {
-      if(app_logging) APP_LOG(APP_LOG_LEVEL_DEBUG, "Texture %d: Failed to load texture", i);
+      LOG_ERROR("Texture %d: Failed to load texture", i);
     } else {
-      //test//if(app_logging) APP_LOG(APP_LOG_LEVEL_DEBUG, "Texture %d: %d Bytes/row = 2<<%d, %s", i, gbitmap_get_bytes_per_row(texture[i].bmp), (uint16_t)log16(gbitmap_get_bytes_per_row(texture[i].bmp)), get_gbitmapformat_text(gbitmap_get_format(texture[i].bmp)));
+      //test//LOG_VERBOSE("Texture %d: %d Bytes/row = 2<<%d, %s", i, gbitmap_get_bytes_per_row(texture[i].bmp), (uint16_t)log16(gbitmap_get_bytes_per_row(texture[i].bmp)), get_gbitmapformat_text(gbitmap_get_format(texture[i].bmp)));
       texture[i].width  = gbitmap_get_bounds(texture[i].bmp).size.w;
       texture[i].height = gbitmap_get_bounds(texture[i].bmp).size.h;
       texture[i].data   = gbitmap_get_data(texture[i].bmp);
       
       #ifdef PBL_COLOR
-        //if(app_logging) APP_LOG(APP_LOG_LEVEL_DEBUG, "%d: %d %s %lx", i, gbitmap_get_bytes_per_row(texture[i]), get_gbitmapformat_text(gbitmap_get_format(texture[i])), (uint32_t)gbitmap_get_palette(texture[i]));
+        //LOG_VERBOSE("%d: %d %s %lx", i, gbitmap_get_bytes_per_row(texture[i]), get_gbitmapformat_text(gbitmap_get_format(texture[i])), (uint32_t)gbitmap_get_palette(texture[i]));
         texture[i].palette = (uint8_t*)gbitmap_get_palette(texture[i].bmp);
         switch (gbitmap_get_format(texture[i].bmp)) {
           case GBitmapFormat1Bit:
@@ -162,7 +165,7 @@ void LoadMapTextures() {
           case GBitmapFormat2BitPalette: texture[i].format=1; texture[i].pixels_per_byte = 2; texture[i].colormax=  3; break;
           case GBitmapFormat4BitPalette: texture[i].format=2; texture[i].pixels_per_byte = 1; texture[i].colormax= 15; break;
           case GBitmapFormat8Bit:        texture[i].format=3; texture[i].pixels_per_byte = 0; texture[i].colormax=255; break;
-          default: if(app_logging) APP_LOG(APP_LOG_LEVEL_DEBUG, "Texture %d: Unsupported Format", i); break;//Crash("Unsupported Texture Format");
+          default: LOG_ERROR("Texture %d: Unsupported Format", i); break;//Crash("Unsupported Texture Format");
         }
       #endif
       texture[i].bytes_per_row= log16(gbitmap_get_bytes_per_row(texture[i].bmp));
@@ -183,7 +186,8 @@ invalid                                                                       1-
   }
   
   const int Sprite_Resources[] = {
-    RESOURCE_ID_TROGDOR,
+    //RESOURCE_ID_TROGDOR,
+    RESOURCE_ID_BLUE_CAR,
 //     //RESOURCE_ID_SPRITE_64_1B,
 //     //RESOURCE_ID_SPRITE_32_1B,
 //     //RESOURCE_ID_SPRITE_32_2B,
@@ -191,7 +195,7 @@ invalid                                                                       1-
 //     //RESOURCE_ID_SPRITE_64_2B,
 //     //RESOURCE_ID_SPRITE_64_4B,
 //     RESOURCE_ID_BALL_8,
-//     RESOURCE_ID_BALL_16,
+     RESOURCE_ID_BALL_16,
 //     RESOURCE_ID_BALL_32,
 //     RESOURCE_ID_BALL_64
       
@@ -210,18 +214,18 @@ invalid                                                                       1-
 
   };
 
-  LOG("Loading Sprites");
+  LOG_DEBUG("Loading Sprites");
   // Normally SpriteID and ResourceID would be the same, but merging 2 resources into 1 sprite creates a discrepency
-  for(uint8_t SprID=0, ResID=0, NumberOfSprites=sizeof(Sprite_Resources)/sizeof(Sprite_Resources[0]); ResID<NumberOfSprites; ++ResID, ++SprID) {
+  for(uint8_t SprID=0, ResID=0, NumberOfSprites=ARRAY_LENGTH(Sprite_Resources); ResID<NumberOfSprites; ++ResID, ++SprID) {
     size_t totalsize=0;
-    LOG("Sprite %d size: %d bytes", SprID, resource_size(resource_get_handle(Sprite_Resources[ResID])));
-    LOG("Heap Before Loading Texture: %d", heap_bytes_used());  totalsize=heap_bytes_used();
+    LOG_DEBUG("Sprite %d size: %d bytes", (int)SprID, (int)resource_size(resource_get_handle(Sprite_Resources[ResID])));
+    LOG_DEBUG("Heap Before Loading Texture: %d", (int)heap_bytes_used());  totalsize=heap_bytes_used();
     sprite[SprID].bmp = gbitmap_create_with_resource(Sprite_Resources[ResID]);
-    LOG("Heap After  Loading Texture: %d", heap_bytes_used());   totalsize=heap_bytes_used() - totalsize;
-    LOG("Uncompressed Size: %d bytes", totalsize);
+    LOG_DEBUG("Heap After  Loading Texture: %d", (int)heap_bytes_used());   totalsize=heap_bytes_used() - totalsize;
+    LOG_DEBUG("Uncompressed Size: %d bytes", (int)totalsize);
     
     if(sprite[SprID].bmp==NULL) {
-      if(app_logging) APP_LOG(APP_LOG_LEVEL_DEBUG, "Sprite %d (Resource %d): Failed to load sprite", SprID, ResID);
+      LOG_ERROR("Sprite %d (Resource %d): Failed to load sprite", SprID, ResID);
     } else {
       #ifdef PBL_COLOR
       sprite[SprID].palette = (uint8_t*)gbitmap_get_palette(sprite[SprID].bmp);
@@ -229,7 +233,7 @@ invalid                                                                       1-
         case GBitmapFormat1Bit:
           // If Format is 1Bit, then it is assumed it is "PNG with Transparency" and is _WHITE and the next is _BLACK.
           // Non-transparent 1bit sprites are no longer supported. (1bit palette-less wall textures still work)
-          if(app_logging) APP_LOG(APP_LOG_LEVEL_DEBUG, "Sprite %d (ResIDs %d %d): Merging two 1Bit images to one 2BitPalette", SprID, ResID, ResID+1);
+          LOG_DEBUG("Sprite %d (ResIDs %d %d): Merging two 1Bit images to one 2BitPalette", SprID, ResID, ResID+1);
           gbitmap_destroy(sprite[SprID].bmp);
           sprite[SprID].bmp = convert_trans_to_2bit_png(Sprite_Resources[ResID], Sprite_Resources[ResID+1]);
           ResID++;  // Skip the next resource (cause we already used it merging it with the current resource)
@@ -239,18 +243,21 @@ invalid                                                                       1-
         case GBitmapFormat2BitPalette: sprite[SprID].format=1; sprite[SprID].pixels_per_byte = 2; sprite[SprID].colormax=  3; break;
         case GBitmapFormat4BitPalette: sprite[SprID].format=2; sprite[SprID].pixels_per_byte = 1; sprite[SprID].colormax= 15; break;
         case GBitmapFormat8Bit:        sprite[SprID].format=3; sprite[SprID].pixels_per_byte = 0; sprite[SprID].colormax=255; break;
-        default: if(app_logging) APP_LOG(APP_LOG_LEVEL_DEBUG, "Sprite %d (Resource %d): Unsupported Format", SprID, ResID); break;//Crash("Unsupported Texture Format");
+        default: LOG_ERROR("Sprite %d (Resource %d): Unsupported Format", SprID, ResID); break;//Crash("Unsupported Texture Format");
       }
       sprite[SprID].palette = (uint8_t*)gbitmap_get_palette(sprite[SprID].bmp);
       #endif
       sprite[SprID].data = (uint8_t*)gbitmap_get_data(sprite[SprID].bmp);
       sprite[SprID].width = gbitmap_get_bounds(sprite[SprID].bmp).size.w;
       sprite[SprID].height = gbitmap_get_bounds(sprite[SprID].bmp).size.h;
-      if(app_logging) APP_LOG(APP_LOG_LEVEL_DEBUG, "Sprite %d (Resource %d): %d Bytes/row = 2<<%d (%d x %d) %s", SprID, ResID, gbitmap_get_bytes_per_row(sprite[SprID].bmp), (uint16_t)log16(gbitmap_get_bytes_per_row(sprite[SprID].bmp)), sprite[SprID].width, sprite[SprID].height, get_gbitmapformat_text(gbitmap_get_format(sprite[SprID].bmp)));
+      LOG_DEBUG("Sprite %d (Resource %d): %d Bytes/row = 2<<%d (%d x %d) %s", SprID, ResID, gbitmap_get_bytes_per_row(sprite[SprID].bmp), (uint16_t)log16(gbitmap_get_bytes_per_row(sprite[SprID].bmp)), sprite[SprID].width, sprite[SprID].height, get_gbitmapformat_text(gbitmap_get_format(sprite[SprID].bmp)));
       sprite[SprID].bytes_per_row= log16(gbitmap_get_bytes_per_row(sprite[SprID].bmp));
     }
   } // end for
 }
+
+
+
 
 void UnLoadMapTextures() {
   for(uint8_t i=0; i<MAX_TEXTURES; i++)
@@ -261,6 +268,9 @@ void UnLoadMapTextures() {
     if(sprite[i].bmp)
       gbitmap_destroy(sprite[i].bmp);
 }
+
+
+
 
 void GenerateSquareMap() {
   //Type 0 is how to render out-of-bounds
@@ -301,8 +311,9 @@ void GenerateSquareMap() {
     object[i].type = 0;         // 1=exists. currently different types isn't supported, but type 0 is "nonexistent"
     object[i].offset = 0;  // height = sprite[object.sprite].height: 64-height = on the ground, 0 = middle, height-64=ceiling
   }
-   //object[0].x = 2 * 64; object[0].y = (64*MAP_SIZE)/2;// object[0].facing=0;    // sprite position
-   //object[0].sprite=0;
+  
+   object[0].x = 2 * 64; object[0].y = (64*MAP_SIZE)/2;// object[0].facing=0;    // sprite position
+   object[0].type = 1; object[0].sprite=0;
 
    //player.x = 6 * 32 + 16; player.y = (64*MAP_SIZE)/2; player.facing=TRIG_MAX_ANGLE/2;    // start inside
    //object.x = 3 * 32;      object.y = (64*MAP_SIZE)/2; object.facing=0;    // sprite position
@@ -310,6 +321,9 @@ void GenerateSquareMap() {
 //  object.x = (64*MAP_SIZE)/2; object.y = (64*MAP_SIZE)/2; object.facing=0;    // sprite position
   //setmap(object.x, object.y, 0);
 }
+
+
+
 
 void GenerateRandomMap() {
   //squaretype[0].face[0] = 0; squaretype[0].face[1] = 0; squaretype[0].face[2] = 0; squaretype[0].face[3] = 0;
@@ -332,6 +346,9 @@ void GenerateRandomMap() {
   for (int16_t i=0; i<MAP_SIZE*MAP_SIZE; i++) if(map[i]==1 && rand()%10==0) map[i]=128+2; // Change 10% of [type 2] blocks to [type 3] blocks
   //for (int16_t i=0; i<MAP_SIZE*MAP_SIZE; i++) if(map[i]==2 && rand()%2==0) map[i]=3;  // Changes 50% of [type 2] blocks to [type 3] blocks
 }
+
+
+
 
 // Generates maze starting from startx, starty, filling map with (0=empty, 1=wall, -1=special)
 void GenerateMazeMap(int32_t startx, int32_t starty) {
@@ -394,9 +411,13 @@ void GenerateMazeMap(int32_t startx, int32_t starty) {
   } //End While True
 }
 
+
+
+
 // ------------------------------------------------------------------------ //
 //  General game functions
 // ------------------------------------------------------------------------ //
+
 void walk(int32_t direction, int32_t distance) {
   int32_t dx = (cos_lookup(direction) * distance) >> 16;
   int32_t dy = (sin_lookup(direction) * distance) >> 16;
@@ -409,6 +430,8 @@ void walk(int32_t direction, int32_t distance) {
 //   if(getmap(object[0].x + dx, object[0].y) < 128 || IDCLIP) object[0].x += dx;  // currently <128 so blocks rays hit user hits.  will change to walkthru type blocks
 //   if(getmap(object[0].x, object[0].y + dy) < 128 || IDCLIP) object[0].y += dy;
 // }
+
+
 
 
 //shoot_ray(x, y, angle)
@@ -463,6 +486,8 @@ void shoot_ray(int32_t start_x, int32_t start_y, int32_t angle) {
   return;
 }
 
+
+
 uint8_t getmap(int32_t x, int32_t y) {
   if (x<0 || y<0) return 0;
   x>>=6; y>>=6;
@@ -470,6 +495,8 @@ uint8_t getmap(int32_t x, int32_t y) {
 //   x>>=6; y>>=6;
 //   return (x<0 || x>=MAP_SIZE || y<0 || y>=MAP_SIZE) ? 0 : map[(y * MAP_SIZE) + x];
 }
+
+
 
 void setmap(int32_t x, int32_t y, uint8_t value) {
   x>>=6; y>>=6;

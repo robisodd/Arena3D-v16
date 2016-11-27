@@ -313,22 +313,23 @@ void draw_3D(GContext *ctx, GRect box) { //, int32_t zoom) {
             int16_t y_min = sprite_y_min<0 ? 0 : sprite_y_min;
             int16_t y_max = sprite_y_max>box.size.h ? box.size.h : sprite_y_max;
 //BEGIN SPRITE DRAWING LOOPS
-            uint16_t x_addr, y_addr, x_offset, y_offset, y_addr_start;
+            uint16_t x_offset, y_offset, addr, addr_start;
             // Calculate y_offset_buffer (y point on texture that is hit) to save time by not calculating it every time in the inner loop
             uint8_t y_offset_buffer[168];
             for(int16_t y=y_min; y<y_max; y++) {
                   y_offset_buffer[y] = ((y - sprite_y_min) * object_dist) / sprite_scale; // y point hit on texture column (was = (objectheight*(y-sprite_ymin))/spriteheight) [0-31]
             }
             // END calculate y_offset_buffer
-            y_addr_start = (box.origin.y + y_min) * 144; // y location on screen
+            addr_start = ((box.origin.y + y_min) * 144) + (box.origin.x); // y location on screen + x location on screen (upper left corner)
             for(int16_t x = x_min; x < x_max; x++) {
               if(dist[x]>=object_dist) {  // if not behind wall
                 //xoffset = (63-(((x - sprite_xmin) * objectdist) / spritescale)) << sprite[0].bytes_per_row; // x point hit on texture -- make sure to use the original object dist, not the cosine adjusted one
                 x_offset = ((sprite[object[sprite_list[j]].sprite].width-1)-(((x - sprite_x_min) * object_dist) / sprite_scale)) << sprite[object[sprite_list[j]].sprite].bytes_per_row; // x point hit on texture -- make sure to use the original object dist, not the cosine adjusted one
                 target = sprite[object[sprite_list[j]].sprite].data + x_offset; // target = sprite
-                x_addr = (box.origin.x + x);          // x location on screen
-                y_addr = y_addr_start; //y_addr = (box.origin.y + y_min) * 144; // y location on screen
-                for(int16_t y=y_min; y<y_max; y++, y_addr+=144) {
+                //x_addr = (box.origin.x + x);          // x location on screen
+                //y_addr = y_addr_start; //y_addr = (box.origin.y + y_min) * 144; // y location on screen
+                addr = addr_start + x;
+                for(int16_t y=y_min; y<y_max; y++, addr+=144) {
                   //y_offset = ((y - sprite_y_min) * object_dist) / sprite_scale; // y point hit on texture column (was = (objectheight*(y-sprite_ymin))/spriteheight) [0-31]
                   y_offset = y_offset_buffer[y];
                   //screen[xaddr+yaddr] = 0b11001100;
@@ -339,7 +340,7 @@ void draw_3D(GContext *ctx, GRect box) { //, int32_t zoom) {
                   
 //                     screen[x_addr + y_addr] = combine_colors(screen[x_addr+y_addr], sprite[object[sprite_list[j]].sprite].palette[((*(target + (y_offset>>sprite[object[sprite_list[j]].sprite].pixels_per_byte))) >> (((7>>sprite[object[sprite_list[j]].sprite].bits_per_pixel)-(y_offset&(7>>sprite[object[sprite_list[j]].sprite].bits_per_pixel)))<<sprite[object[sprite_list[j]].sprite].bits_per_pixel))&sprite[object[sprite_list[j]].sprite].colormax]);  // make bit white or keep it black
                   uint8_t fg = sprite[object[sprite_list[j]].sprite].palette[((*(target + (y_offset>>sprite[object[sprite_list[j]].sprite].pixels_per_byte))) >> (((7>>sprite[object[sprite_list[j]].sprite].bits_per_pixel)-(y_offset&(7>>sprite[object[sprite_list[j]].sprite].bits_per_pixel)))<<sprite[object[sprite_list[j]].sprite].bits_per_pixel))&sprite[object[sprite_list[j]].sprite].colormax];
-                  screen[x_addr + y_addr] = (shadowtable[((~fg)&0b11000000) + (screen[x_addr + y_addr]&63)]&63) + shadowtable[fg];
+                  screen[addr] = (shadowtable[((~fg)&0b11000000) + (screen[addr]&63)]&63) + shadowtable[fg];
 
                   
                   //uint8_t combine_colors(uint8_t bg_color, uint8_t fg_color) {  return (shadowtable[((~fg_color)&0b11000000) + (bg_color&63)]&63) + shadowtable[fg_color];

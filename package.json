@@ -1,6 +1,8 @@
 {
     "author": "robisodd",
-    "dependencies": {},
+    "dependencies": {
+        "watch_info": "https://builds.cloudpebble.net/d60bd791-95df-415a-94bf-410ce2779c4d/package.tar.gz"
+    },
     "keywords": [],
     "name": "arena3d-online-v0.16",
     "pebble": {
@@ -22,6 +24,12 @@
         "projectType": "native",
         "resources": {
             "media": [
+                {
+                    "file": "images/Blue Car - 6bit Single Frame Sideways.png",
+                    "name": "BLUE_CAR",
+                    "targetPlatforms": null,
+                    "type": "bitmap"
+                },
                 {
                     "file": "images/RedColorBrick.png",
                     "name": "REDBRICK",
@@ -126,10 +134,7 @@
         },
         "sdkVersion": "3",
         "targetPlatforms": [
-            "aplite",
-            "basalt",
-            "chalk",
-            "diorite"
+            "basalt"
         ],
         "uuid": "667971ee-babe-4ae6-8b88-9a17401af25e",
         "watchapp": {
