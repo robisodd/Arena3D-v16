@@ -187,7 +187,8 @@ invalid                                                                       1-
   
   const int Sprite_Resources[] = {
     //RESOURCE_ID_TROGDOR,
-    RESOURCE_ID_BLUE_CAR,
+    //RESOURCE_ID_BLUE_CAR,
+    RESOURCE_ID_BLUECAR,
 //     //RESOURCE_ID_SPRITE_64_1B,
 //     //RESOURCE_ID_SPRITE_32_1B,
 //     //RESOURCE_ID_SPRITE_32_2B,
